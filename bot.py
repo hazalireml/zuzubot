@@ -1,6 +1,6 @@
 import random
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
 # Bot Token'ını buraya ekle
 TOKEN = "8021040258:AAFqKJw93quyeKLRZ8B_Xb6pDj3yznrc-GE"
