@@ -1,0 +1,13 @@
+{
+    "-1003602196542": {
+        "games_enabled": true,
+        "itiraf_enabled": true,
+        "admin_channel": "-1002870666552",
+        "main_chat": "-1003602196542"
+    },
+    "-1002870666552": {
+        "title": "YKS SOHBET GRUBU",
+        "games_enabled": true,
+        "itiraf_enabled": true
+    }
+}
