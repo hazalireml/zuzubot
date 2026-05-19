@@ -937,4 +937,4 @@ if __name__ == "__main__":
     app.add_error_handler(error_handler)
 
     logger.info("Bot çalışıyor...")
-    app.run_polling()
+    app.run_polling(drop_pending_updates=True)
