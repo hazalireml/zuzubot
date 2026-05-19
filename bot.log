@@ -4781,3 +4781,62 @@ UnboundLocalError: cannot access local variable 'cevap' where it is not associat
 2026-05-19 13:52:33,081 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
 2026-05-19 13:52:42,541 - INFO - XP verisi kaydedildi.
 2026-05-19 13:52:43,218 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 13:53:58,434 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:10000
+ * Running on http://192.168.1.129:10000
+2026-05-19 13:53:58,435 - INFO - [33mPress CTRL+C to quit[0m
+2026-05-19 13:53:58,833 - INFO - Bot çalışıyor...
+2026-05-19 13:53:59,123 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getMe "HTTP/1.1 200 OK"
+2026-05-19 13:53:59,186 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/deleteWebhook "HTTP/1.1 200 OK"
+2026-05-19 13:53:59,190 - INFO - Application started
+2026-05-19 13:54:09,447 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 13:54:11,084 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 13:54:11,395 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/sendMessage "HTTP/1.1 200 OK"
+2026-05-19 14:12:37,149 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:10000
+ * Running on http://192.168.1.129:10000
+2026-05-19 14:12:37,159 - INFO - [33mPress CTRL+C to quit[0m
+2026-05-19 14:12:37,592 - INFO - Bot çalışıyor...
+2026-05-19 14:12:37,898 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getMe "HTTP/1.1 200 OK"
+2026-05-19 14:12:37,960 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/deleteWebhook "HTTP/1.1 200 OK"
+2026-05-19 14:12:37,966 - INFO - Application started
+2026-05-19 14:12:38,175 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:12:38,283 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/sendMessage "HTTP/1.1 200 OK"
+2026-05-19 14:12:38,344 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/sendMessage "HTTP/1.1 400 Bad Request"
+2026-05-19 14:12:38,598 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/sendMessage "HTTP/1.1 200 OK"
+2026-05-19 14:12:38,664 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/sendMessage "HTTP/1.1 400 Bad Request"
+2026-05-19 14:12:38,810 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/sendMessage "HTTP/1.1 200 OK"
+2026-05-19 14:12:38,904 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/sendMessage "HTTP/1.1 200 OK"
+2026-05-19 14:12:48,261 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:12:58,333 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:13:07,924 - INFO - XP verisi kaydedildi.
+2026-05-19 14:13:08,406 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:13:18,514 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:13:28,653 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:16:20,445 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:10000
+ * Running on http://192.168.1.129:10000
+2026-05-19 14:16:20,446 - INFO - [33mPress CTRL+C to quit[0m
+2026-05-19 14:16:20,946 - INFO - Bot çalışıyor...
+2026-05-19 14:16:21,241 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getMe "HTTP/1.1 200 OK"
+2026-05-19 14:16:21,304 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/deleteWebhook "HTTP/1.1 200 OK"
+2026-05-19 14:16:21,309 - INFO - Application started
+2026-05-19 14:16:21,490 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:16:31,637 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:16:41,786 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:16:51,248 - INFO - XP verisi kaydedildi.
+2026-05-19 14:16:51,853 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:17:01,960 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:17:12,199 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:17:22,339 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:17:32,476 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:17:35,240 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:17:45,313 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:17:51,286 - INFO - XP verisi kaydedildi.
+2026-05-19 14:17:55,415 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:18:05,551 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:18:15,629 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
+2026-05-19 14:18:25,695 - INFO - HTTP Request: POST https://api.telegram.org/bot8922033414:AAGSPryri05HxiuonShRIFNsUSKz-iYPMk0/getUpdates "HTTP/1.1 200 OK"
