@@ -513,55 +513,38 @@ async def burc_yorumu(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 raise e
         return 
 
-
-    burc_adi = context.args[0].lower()
-    
-
-    haftalik_yorum = f"🔮 **{burc_adi.capitalize()} Burcu Haftalık Yorumu:**\n\nHer şey çok güzel olacak!" 
-
-    try:
-        
-        await update.message.reply_text(haftalik_yorum, parse_mode="Markdown")
-    except Exception as e:
-        if "Message to be replied not found" in str(e):
-            
-            await context.bot.send_message(
-                chat_id=update.effective_chat.id,
-                text=haftalik_yorum,
-                parse_mode="Markdown"
-            )
-        else:
-            raise e
-        
-
+  
     secilen_burc = (
-    context.args[0].lower()
-    .lower()
-    .replace("ı", "i")
-    .replace("ş", "s")
-    .replace("ğ", "g")
-    .replace("ü", "u")
-    .replace("ö", "o")
-    .replace("ç", "c")
-)
+        context.args[0]
+        .lower()
+        .replace("ı", "i")
+        .replace("ş", "s")
+        .replace("ğ", "g")
+        .replace("ü", "u")
+        .replace("ö", "o")
+        .replace("ç", "c")
+    )
+
+   
     if secilen_burc in BURC_YORUMLARI:
         yorum = BURC_YORUMLARI[secilen_burc]
         cevap = f"🔮 <b>{secilen_burc.capitalize()} Burcu Haftalık Yorumu</b> 🔮\n\n{yorum}"
-        try:
-        # Önce mesaja normal bir şekilde yanıt vermeyi dener
-         await update.message.reply_text(cevap, parse_mode="HTML")
-        except Exception as e:
-            if "Message to be replied not found" in str(e):
-            # Eğer kullanıcı orijinal mesajı sildiyse, normal mesaj olarak odaya fırlatır
-                await context.bot.send_message(
+    else:
+        
+        cevap = f"🔮 <b>{secilen_burc.capitalize()}</b> adında bir burç bulamadım. Lütfen doğru yazdığından emin ol."
+
+    
+    try:
+        await update.message.reply_text(cevap, parse_mode="HTML")
+    except Exception as hata:
+        if "Message to be replied not found" in str(hata):
+            await context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text=cevap,
                 parse_mode="HTML"
             )
         else:
-            raise e
-    else:
-        await update.message.reply_text("❌ Geçersiz burç adı. Lütfen geçerli bir burç yazın (örn: koç, boğa, akrep).")
+            raise hata
 
 async def dogruluk(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_spam(update.effective_user.id):
