@@ -5,6 +5,8 @@ import logging
 import json
 import time
 
+from flask import Flask
+from threading import Thread
 from dotenv import load_dotenv
 from telegram import (
     Update,
@@ -22,6 +24,19 @@ from telegram.ext import (
 )
 
 load_dotenv()
+
+flask_app = Flask('')
+
+@flask_app.route('/')
+def home():
+    return "Zuzu Bot Aktif!"
+
+def run():
+    flask_app.run(host='0.0.0.0', port=10000)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -466,14 +481,58 @@ async def ship(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text)
 
 async def burc_yorumu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if is_spam(update.effective_user.id): return
-    if not context.args:
-        await update.message.reply_text(
-            "🔮 **Haftalık Burç Yorumu için bir burç adı yazmalısın.**\n"
-            "Örnek: `/burc koç` veya `/burc aslan`",
-            parse_mode="Markdown"
-        )
+    if is_spam(update.effective_user.id): 
         return
+        
+    
+    if not update.message:
+        if update.effective_chat:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="🔮 **Haftalık Burç Yorumu için bir burç adı yazmalısın.**\nÖrnek: `/burc koç`",
+                parse_mode="Markdown"
+            )
+        return
+
+    
+    if not context.args:
+        try:
+            await update.message.reply_text(
+                "🔮 **Haftalık Burç Yorumu için bir burç adı yazmalısın.**\n"
+                "Örnek: `/burc koç` veya `/burc aslan`",
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            if "Message to be replied not found" in str(e):
+                await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text="🔮 **Haftalık Burç Yorumu için bir burç adı yazmalısın.**\nÖrnek: `/burc koç`",
+                    parse_mode="Markdown"
+                )
+            else:
+                raise e
+        return 
+
+
+    burc_adi = context.args[0].lower()
+    
+
+    haftalik_yorum = f"🔮 **{burc_adi.capitalize()} Burcu Haftalık Yorumu:**\n\nHer şey çok güzel olacak!" 
+
+    try:
+        
+        await update.message.reply_text(haftalik_yorum, parse_mode="Markdown")
+    except Exception as e:
+        if "Message to be replied not found" in str(e):
+            
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=haftalik_yorum,
+                parse_mode="Markdown"
+            )
+        else:
+            raise e
+        
 
     secilen_burc = (
     context.args[0].lower()
@@ -488,7 +547,19 @@ async def burc_yorumu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if secilen_burc in BURC_YORUMLARI:
         yorum = BURC_YORUMLARI[secilen_burc]
         cevap = f"🔮 <b>{secilen_burc.capitalize()} Burcu Haftalık Yorumu</b> 🔮\n\n{yorum}"
-        await update.message.reply_text(cevap, parse_mode="HTML")
+        try:
+        # Önce mesaja normal bir şekilde yanıt vermeyi dener
+         await update.message.reply_text(cevap, parse_mode="HTML")
+        except Exception as e:
+            if "Message to be replied not found" in str(e):
+            # Eğer kullanıcı orijinal mesajı sildiyse, normal mesaj olarak odaya fırlatır
+                await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=cevap,
+                parse_mode="HTML"
+            )
+        else:
+            raise e
     else:
         await update.message.reply_text("❌ Geçersiz burç adı. Lütfen geçerli bir burç yazın (örn: koç, boğa, akrep).")
 
@@ -850,6 +921,8 @@ async def auto_save():
 
 
 if __name__ == "__main__":
+
+    keep_alive()
 
     app = Application.builder().token(TOKEN).build()
 
