@@ -251,7 +251,6 @@ SLAP_LIST = [
     "📺 {a}, {b}'nin üstüne televizyon fırlattı.",
     "🥛 {a}, {b}'nin kafasına yoğurt döktü.",
     "🐟 {a}, {b}'ye balıkla vurdu 😭",
-    "🍞 {a}, {b}'yi ekmekle tokatladı.",
     "🪑 {a}, {b}'ye sandalye attı 💀",
     "🧃 {a}, {b}'nin suratına meyve suyu sıktı.",
     "🛏️ {a}, {b}’ye yumuşak bir yastık fırlattı 🛏️",
@@ -619,18 +618,25 @@ async def grup_id_ver(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def slap(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_spam(update.effective_user.id):
-        await update.message.reply_text("⚠️ Çok hızlısın! Lütfen 3 saniye bekle.")
-        return
-    if not context.args:
         await update.message.reply_text(
-            "Birini etiketlemelisin 😭\n\n"
-            "Örnek:\n/slap @kullanici"
+            "⚠️ Çok hızlısın! Lütfen 3 saniye bekle."
         )
         return
+
     user = update.message.from_user.first_name
-    hedef = context.args[0]
+
+    if update.message.reply_to_message:
+        hedef = update.message.reply_to_message.from_user.first_name
+
+   
+    elif context.args:
+        hedef = context.args[0]
+
     mesaj = random.choice(SLAP_LIST)
-    await update.message.reply_text(mesaj.format(a=user, b=hedef))
+
+    await update.message.reply_text(
+        mesaj.format(a=user, b=hedef)
+    )
 
 async def sans(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
