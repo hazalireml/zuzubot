@@ -4,8 +4,8 @@ import asyncio
 import logging
 import json
 import time
+import psycopg
 
-from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
 from telegram import (
@@ -43,7 +43,35 @@ COOLDOWN_SECONDS = 0.7
 BOT_USERNAME = "zuzufunbot"              
 SUPPORT_GROUP_URL = "https://t.me/zuzudestek"  
 DUYURU_CHANNEL_URL = "https://t.me/zuzuduyuru" 
-MY_PROFILE_URL = "https://t.me/heyzzil"  
+MY_PROFILE_URL = "https://t.me/heyzzil"
+
+# setup database for connection
+IS_PRODUCTION_MODE = os.getenv("IS_PROD", "false").lower() == "true"
+
+DB_HOST = os.getenv(
+    "DB_HOST_EXTERNAL" if IS_PRODUCTION_MODE else "DB_HOST_INTERNAL"
+)
+
+DB_PORT = int(os.getenv(
+    "DB_PORT_EXTERNAL" if IS_PRODUCTION_MODE else "DB_PORT_INTERNAL"
+))
+
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+print("Database Bilgisi:", "host: " + DB_HOST + " port: " + str(DB_PORT))
+print("Veritabanına bağlanılıyor...")
+
+conn = psycopg.connect(
+    host=DB_HOST,
+    port=DB_PORT,
+    dbname=DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD
+)
+
+print("Veritabanına bağlanıldı.")
 
 user_cooldowns = {}
 grup_ayarlari = {}
