@@ -25,20 +25,6 @@ from telegram.ext import (
 
 load_dotenv()
 
-flask_app = Flask('')
-
-@flask_app.route('/')
-def home():
-    return "Zuzu Bot Aktif!"
-
-def run():
-    port = int(os.environ.get("PORT", 10000))
-    flask_app.run(host='0.0.0.0', port=port)
-
-def keep_alive():
-    t = Thread(target=run)
-    t.start()
-
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     level=logging.INFO,
@@ -914,9 +900,6 @@ async def auto_save():
 
 
 if __name__ == "__main__":
-
-    keep_alive()
-
     app = Application.builder().token(TOKEN).build()
 
     async def post_init(app):
