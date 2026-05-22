@@ -289,7 +289,8 @@ SLAP_LIST = [
     "🏗️ {a}, {b}’nin kafasına şantiye vinci düşürdü! 🏗️",
     "🚀 {a}, {b}’i sırtına roket bağlayıp Mars’a fırlattı! 🚀",
     "🌋 {a}, {b}’i tutup aktif yanardağın içine fırlattı! 🌋",
-    "🍽️ {a}, {b}’nin suratına porselen tabak fırlattı! 🍽️"
+    "🍽️ {a}, {b}’nin suratına porselen tabak fırlattı! 🍽️",
+
 
 ]
 
