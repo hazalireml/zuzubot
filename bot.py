@@ -789,7 +789,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "• /ship @kullanici → Uyumluluk testi 💕\n"
     "• /burc → Burç yorumu \n\n"
     "• /sans → Günlük şansın \n"
-    "• /mood → Ruh hali analizi \n"
+    "• /mood → Ruh hali analizi \n\n"
 
     "🏆 <b>Seviye Sistemi</b>\n"
     "• /rank → Profilin \n"
