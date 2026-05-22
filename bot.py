@@ -289,22 +289,7 @@ SLAP_LIST = [
     "🏗️ {a}, {b}’nin kafasına şantiye vinci düşürdü! 🏗️",
     "🚀 {a}, {b}’i sırtına roket bağlayıp Mars’a fırlattı! 🚀",
     "🌋 {a}, {b}’i tutup aktif yanardağın içine fırlattı! 🌋",
-    "🍽️ {a}, {b}’nin suratına porselen tabak fırlattı! 🍽️",
-    "🩴 {a}, {b}’ya görünmez terlik attı 🩴",
-    "🍕 {a}, {b}’i pizza kutusuyla yakaladı 🍕",
-    "🥛 {a}, {b}’a 3D yoğurt yağmuru başlattı 🥛",
-    "🥔 {a}, {b}’e glitch patates fırlattı 🥔",
-    "😭 {a}, {b}’i internetten silmeye çalıştı ama başaramadı 😭",
-    "💥 {a}, {b}’e +999 hasar verdi (ama sadece gıdıklama etkisi 😄)",
-    "🛏️ {a}, {b} ile yastık savaşı başlattı 🛏️",
-    "🎂 {a}, {b}’e kek attı 🎂",
-    "🎉 {a}, {b}’i yanlışlıkla konfetiye boğdu 🎉",
-    "🥔 {a}, {b}'e patates fırlattı 😂",
-    "🩴 {a}, {b}'e terlik roketi fırlattı 😂",
-    "🍕 {a}, {b}'e pizza bombardımanına tuttu",
-    "🪑 {a}, {b}'e sandalye ulti attı",
-    "🎯 {a}, {b}'i hedef aldı ve ıskaladı 😭",
-    "🧠 {a}, {b}'nin beyin RAM’ini dondurdu",
+    "🍽️ {a}, {b}’nin suratına porselen tabak fırlattı! 🍽️"
 
 ]
 
@@ -377,7 +362,6 @@ MOOD_YORUMLARI = [
     "☀️ Enerjin yükseliyor, bugün daha iyi hissedeceksin.",
     "🌙 Biraz kafa dinlemeye ihtiyacın var gibi.",
     "💫 Duygusal ama güçlü bir moddasın.",
-    "🔥 Motivasyonun geri dönmeye başlıyor.",
     "🫧 Kendine fazla yükleniyorsun.",
     "🌿 Sessizlik sana iyi gelebilir bugün.",
     "🌧️ Biraz içe dönük ve düşünceli bir moddasın.",
@@ -401,7 +385,7 @@ MOOD_YORUMLARI = [
     "Bugün senin modun tam olarak: 'Telefonu sessize alıp akşama kadar abur cubur yiyerek dizi izlemek.' Dünyanın geri kalanı umrunda bile değil, tam bir inziva havası. 🍿",
     "Şu an dünyaları verseler parmağını bile oynatmayacak bir üşengeçlik modundasın değil mi? Seni çok iyi anlıyorum, bazen en güzel aktivite hiçbir şey yapmamaktır. 💤",
     "🧠 Zihnin dolu ama toparlanıyor.",
-    "💤 Biraz yorgunluk hissi olabilir.",
+    "💤 Biraz yorgunluk hissi olabilir."
 
 ]
 
