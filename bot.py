@@ -13,7 +13,7 @@ from telegram import (
     InlineKeyboardButton,
     InlineKeyboardMarkup
 )
-
+from weather import hd, weather_callback
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -890,6 +890,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "• /soz → Günlük motivasyon\n"
     "• /slap @kullanici → Minik şaka\n"
     "• /roast → Zuzu seni roastlasın\n\n"
+    "• /hd → Hava Durumu (şehir)\n"
 
     "💞 <b>Sosyal</b>\n"
     "• /ship @kullanici → Uyumluluk testi 💕\n"
@@ -1028,8 +1029,9 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("sans", sans))
     app.add_handler(CommandHandler("mood", mood))
     app.add_handler(CommandHandler("roast", roast))
+    app.add_handler(CommandHandler("hd", hd))
 
-
+    app.add_handler(CallbackQueryHandler(weather_callback, pattern=r"^hd"))
     app.add_handler(CallbackQueryHandler(buttons))
     app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, log_private_messages))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_xp))
