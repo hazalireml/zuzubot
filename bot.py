@@ -1166,31 +1166,31 @@ async def error_handler(update, context):
         logger.error(f"Hata log kanalına gönderilemedi: {e}")
        
     
-    if __name__ == "__main__":
+if __name__ == "__main__":
 
         keep_alive()
 
-    app = Application.builder().token(TOKEN).build()
+app = Application.builder().token(TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("d", dogruluk))
-    app.add_handler(CommandHandler("c", cesaret))
-    app.add_handler(CommandHandler("soz", soz))
-    app.add_handler(CommandHandler("ship", ship))
-    app.add_handler(CommandHandler("burc", burc_yorumu))
-    app.add_handler(CommandHandler("grup_id", grup_id_ver))
-    app.add_handler(CommandHandler("slap", slap))
-    app.add_handler(CommandHandler("sans", sans))
-    app.add_handler(CommandHandler("mood", mood))
-    app.add_handler(CommandHandler("roast", roast))
-    app.add_handler(CommandHandler("hd", hd))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, zuzu_listener))
-    app.add_handler(CallbackQueryHandler(weather_callback, pattern=r"^hd"))
-    app.add_handler(CallbackQueryHandler(buttons))
-    app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, log_private_messages))
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("d", dogruluk))
+app.add_handler(CommandHandler("c", cesaret))
+app.add_handler(CommandHandler("soz", soz))
+app.add_handler(CommandHandler("ship", ship))
+app.add_handler(CommandHandler("burc", burc_yorumu))
+app.add_handler(CommandHandler("grup_id", grup_id_ver))
+app.add_handler(CommandHandler("slap", slap))
+app.add_handler(CommandHandler("sans", sans))
+app.add_handler(CommandHandler("mood", mood))
+app.add_handler(CommandHandler("roast", roast))
+app.add_handler(CommandHandler("hd", hd))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, zuzu_listener))
+app.add_handler(CallbackQueryHandler(weather_callback, pattern=r"^hd"))
+app.add_handler(CallbackQueryHandler(buttons))
+app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, log_private_messages))
    
     
-    app.add_error_handler(error_handler)
+app.add_error_handler(error_handler)
 
-    logger.info("Bot çalışıyor...")
-    app.run_polling(drop_pending_updates=True)
+logger.info("Bot çalışıyor...")
+app.run_polling(drop_pending_updates=True)
