@@ -62,20 +62,7 @@ MY_PROFILE_URL = "https://t.me/heyzzil"
 user_cooldowns = {}
 grup_ayarlari = {}
 
-xp_data = {}
-xp_dirty = False
-XP_FILE = "xp_data.json"
 
-def load_json(filename):
-    try:
-        if os.path.exists(filename):
-            with open(filename, "r", encoding="utf-8") as f:
-                return json.load(f)
-        return {}
-    except Exception as e:
-        logger.error(f"{filename} yükleme hatası: {e}")
-        return {}
-xp_data = load_json(XP_FILE)
 
 def save_json(filename, data):
     try:
@@ -105,33 +92,6 @@ async def is_user_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> b
     return chat_member.status in ["creator", "administrator"]
 
 
-def calculate_level(xp):
-
-    return int(xp ** 0.5 // 10) + 1
-
-
-def add_xp(user_id, amount):
-    global xp_dirty
-
-    user_id = str(user_id)
-
-    if user_id not in xp_data:
-        xp_data[user_id] = {
-            "xp": 0 }
-        
-    xp_data[user_id]["xp"] += amount
-    xp_dirty = True
-
-
-def get_user_xp(user_id):
-
-    user_id = str(user_id)
-
-    if user_id not in xp_data:
-        return 0
-
-    return xp_data[user_id]["xp"]
-
 async def user_reply(message, user, text):
     mention = f"[{user.first_name}](tg://user?id={user.id})"
     full_text = f"{mention} {text}"
@@ -143,6 +103,7 @@ DOGRULUK = [
     "En son kime mesaj attın?",
     "Çevrendeki insanlara her şey yolundaymış gibi davranırken, içten içe 'Ben bu hayatı yönetmeyi beceremiyorum, herkes benden daha başarılı' diye düşündüğün bir dönem oldu mu?",
     "Bugün en çok kimi düşündün?",
+    "Hayvanlarla konuşabilsen ilk hangi hayvana ne sorardın?",
     "Bir daha asla hata yapmayacağın ama hiçbir şey öğrenemeyeceğin bir hayat mı, yoksa bol hata yapıp sürekli gelişeceğin bir hayat mı?",
     "Şu an gruptan en çok kimi merak ediyorsun?",
     "Birinin sana söylediği, söyleyen kişinin muhtemelen unuttuğu ama senin hala dün gibi hatırladığın ve içini sızlatan o tek cümle nedir?",
@@ -153,6 +114,8 @@ DOGRULUK = [
     "Hayatında yaptığın şeyleri gerçekten kendin istediğin için mi yapıyorsun, yoksa ailenden veya çevrenden 'Aferin, başardın' onayını duymak için mi çabalıyorsun?",
     "İnsanların seni yanlış anlamasına neden olan en büyük özelliğin ne?",
     "Şu an birine sinirli misin? Sinirliysen kime?",
+    "En son kime bakıp 'vay be' dedin?",
+    "Telefonunda gizli albüm var mı?",
     "Hayatının hangi dönemine gidip, oradaki zamanı sonsuza kadar dondurmak ve o yaşta/o ruh halinde kalmak isterdin?",
     "Son 24 saatte yalan söylediğin bir şey var mı?",
     "Bugün 10 yaşındaki halin karşına çıksa, senden gurur duyar mıydı?",
@@ -192,23 +155,55 @@ DOGRULUK = [
     "Bir insanın hayatını kurtaracaksın ama bunun bedeli olarak en yakın arkadaşını kaybedeceksin. Ne yapardın?",
     "Seni en çok ne yorar: insanlar mı, düşüncelerin mi?",
     "Bir şeyi asla unutamayacağını düşündüğün bir an var mı?",
+    "Sana 100 bin TL verseler rehberindeki hangi kişiyi aramaya cesaret edemezdin?",
+    "Telefonunda silmeye korktuğun ama kimsenin görmesini istemediğin şey ne?",
+    "Hiç birini stalklarken yanlışlıkla fotoğrafını beğendin mi?",
+    "Hayatında attığın en pişmanlık dolu mesaj neydi?",
+    "Bir arkadaşını 24 saat susturma hakkın olsa kimi sustururdun?",
+    "Şu an gruptan biri senin yerine telefonunu kullansa en çok neden utanırdın?",
+    "En son kimin profilinde gereğinden fazla dolaştın?",
+    "Eski sevgilin sana 'özledim' yazsa ilk tepkin ne olurdu?",
+    "Şu an rehberinden bir kişiyi sonsuza kadar silmen gerekse kim olurdu?",
+    "Hiç sırf meraktan fake hesap açıp birini izledin mi?",
+    "Bir gün boyunca sadece dürüst olsan başına en büyük bela ne açılırdı?",
+    "Hayatındaki en büyük 'iyi ki kimse öğrenmedi' olayı ne?",
     "Sonsuza kadar yaşayacaksın ama sevdiğin herkes senden önce ölecek. Kabul eder miydin?",
     "Sessiz kaldığında aklına en çok ne geliyor?",
     "Geçmişini tamamen unutup sıfırdan başlamak mı, tüm hatalarınla yaşamaya devam etmek mi?",
     "Bir insana güvenmen için ne olması gerekir?",
     "Hiç “hak etmiyor ama seviyorum” dediğin biri oldu mu?",
+    "Şu an gruptan biriyle kahve içecek olsan kimi seçerdin?",
+    "İlk görüşte aşk mı, zamanla aşk mı?",
+    "En son hoşlandığın kişiyi ne zaman düşündün?",
+    "Bir gün boyunca burnundan makarna çıksa mı yoksa kulaklarından ketçap aksa mı?",
+    "Sana 1 milyon TL verseler telefonunu 24 saat annene verir misin?",
+    "Hayatın boyunca tek bir emoji kullanacak olsan hangisi olurdu?",
+    "Mesajı hemen mi açarsın yoksa bekletir misin?",
+    "İlk adımı atar mısın, karşı taraftan mı beklersin?",
+    "Birinin seni etkilemesi için ilk neye dikkat edersin?",
+    "Eski sevgiline tekrar şans verir miydin?",
+    "En çekici bulduğun özellik nedir?",
+    "Bugüne kadar aldığın en tatlı iltifat neydi?",
+    "Bir dinozor evcil hayvanın olsa adını ne koyardın?",
+    "Şu an biriyle sevgili olmak zorunda olsan gruptan kimi seçerdin?",
+    "Hoşlandığın biri sana yazsa şu an ne yaparsın?",
     "Sevdiğin kişi seni unutacak ama çok mutlu olacak. Yoksa seni hatırlayacak ama mutsuz olacak. Hangisini seçerdin?",
     "İnsanları hızlı mı yargılıyorsun yoksa şans mı verirsin?",
     "Birini gerçekten sevdiğini nasıl anlarsın?",
+    "Sence gerçek dostluk nedir?",
     "Çok zengin olacaksın ama kimse seni yaptıkların için değil, paran için sevecek. Kabul eder miydin?",
     "Seni en çok hayal kırıklığına uğratan şey insanlar mı beklentilerin mi?",
     "Keşke geri dönüp değiştirebilseydim dediğin bir an var mı?",
     "Bir günlüğüne görünmez olmak mı, bir günlüğüne herkesin aklını okumak mı?",
     "Geçmişin seni mi şekillendirdi yoksa seni mi kırdı?",
+    "Mesajına geç cevap veren biri seni sinirlendirir mi?",
     "5 yıl önceki halin seni görse ne derdi?",
+    "Hiç bir arkadaşını yanlış tanıdığını fark ettin mi?",
+    "Hiç 'keşke yazsaydım' dediğin biri oldu mu?",
     "Bir daha hiç yalan duymayacaksın ama bütün gerçekler canını yakacak. Kabul eder miydin?",
     "Gelecekteki sen bugünkü haline ne söylerdi?",
     "Hayatında “o an her şey değişti” dediğin bir an var mı?",
+    "Bir arkadaşını kardeşin gibi görüyorsan kim?",
     "Birini kurtarmak için bütün başarılarını kaybetmen gerekse kabul eder miydin?",
     "Mutluluk sence bir hedef mi yoksa alışkanlık mı?",
     "Kendinle yalnız kalmak sana iyi mi geliyor yoksa rahatsız mı ediyor?",
@@ -239,6 +234,34 @@ DOGRULUK = [
     "İnsanlara gösterdiğin o güçlü, neşeli veya umursamaz maskenin arkasında, aslında tek başına kaldığında seni en çok ağlatan ya da korkutan şey ne?",
     "Hayatında birine karşı çok büyük bir haksızlık yaptığını, o kişinin tamamen haklı olduğunu bildiğin ama gururundan dolayı asla gidip özür dilemediğin bir durum var mı?",
     "Sevdiğin bir insanı mutlu etmek için bugüne kadar kendinden en büyük neyi ödün verdin? Buna değdi mi?",
+    "Sana göre dost ile arkadaş arasındaki en büyük fark nedir?",
+    "Sence uzun yıllar süren arkadaşlıkların sırrı nedir?",
+    "Arkadaşlıkta kıskançlık normal mi?",
+    "Hiç bir arkadaşını ikinci kez tanıma şansın olsa yine arkadaş olur muydun?",
+    "Bir arkadaşın zor durumda olsa onun için nelerden vazgeçebilirsin?",
+    "Bir arkadaşının seni gerçekten tanıdığını düşünüyor musun?",
+    "Arkadaşlıkta güven mi sadakat mi daha önemlidir?",
+    "Hiç arkadaşına söyleyemediğin bir şey oldu mu?",
+    "Sence bir arkadaşını tamamen tanımak mümkün mü?",
+    "İyi bir arkadaş sence hangi özelliklere sahip olmalı?",
+    "Arkadaşlıkta en çok kırıldığın davranış ne olur?",
+    "Bir arkadaşın seni eleştirirse bunu nasıl karşılarsın?",
+    "Sence arkadaşlık zamanla mı oluşur yoksa ilk andan belli olur mu?",
+    "Arkadaşlıkta fedakârlığın bir sınırı olmalı mı?",
+    "Hiç seni kıskandığını düşündüğün bir arkadaşın oldu mu?",
+    "Bir arkadaşın senden yardım istese, ne olursa olsun yardım eder misin?",
+    "Arkadaşlıkta sessizlik mi, açık konuşmak mı daha değerlidir?",
+    "Bir arkadaşının başarısını görünce gerçekten mutlu olur musun?",
+    "Sence insanlar en çok neden yalnız kalır?",
+    "Bir arkadaşını affetmekte en çok zorlanacağın şey ne olurdu?",
+    "Sence insanlar neden arkadaşlarını kaybeder?",
+    "Hiç arkadaşın için gözyaşı döktün mü?",
+    "Bir arkadaşın seni hayal kırıklığına uğrattı mı?",
+    "Arkadaşlıkta gurur mu daha önemlidir, özür dilemek mi?",
+    "Bir arkadaşının sırrını sonsuza kadar saklayabilir misin?",
+    "Hiç arkadaşın tarafından dışlandığını hissettin mi?",
+    "En yakın arkadaşın seni üç kelimeyle nasıl anlatırdı?",
+    "Sence arkadaşlık mesafeyle biter mi?"
     "Birinin seni yıllardır yanlış tanıdığını öğrensen, onu düzeltmek için uğraşır mıydın yoksa öyle kalmasını mı isterdin?",
     "Kendin hakkında değiştirebileceğin tek bir özellik olsaydı, karakterini mi değiştirirdin yoksa dış görünüşünü mü? Neden?",
     "Hiç sırf birini üzmemek için mutluymuş gibi davrandığın oldu mu? Bu sana ne hissettirdi?",
@@ -312,6 +335,26 @@ SOZ = [
     "🤍 Hayat net bir harita değil, yürüdükçe oluşan bir yol.",
     "🤍 Her şey hemen anlamlı olmak zorunda değil.",
     "🤍 Bugün anlamadığın şey, yarın yolunun bir parçası olabilir.",
+    "🤍 Bazı insanlar hayatına bir ömür kalmak için değil, sana kendini hatırlatıp gitmek için girer. Onlar gittikten sonra eksilen kişi onlar değil, eski sen olursun.",
+    "🤍 Bir insanın gerçek değeri, mutlu günlerinde yanında olanlarla değil; en sessiz zamanlarında kapısını çalmaya devam edenlerle anlaşılır.",
+    "🤍 Herkes bir gün unutulur derler. Oysa unutulmayan insanlar vardır; çünkü bazıları hatıra olmaz, insanın karakterine karışır.",
+    "🤍 Bazen uzun uzun konuşmak hiçbir şeyi değiştirmez. Doğru insan, sustuğunda bile içinde kopan fırtınayı anlayabilendir.",
+    "🤍 En derin yaralar, düşmanlardan değil; en çok güvendiklerinden gelir. Çünkü yabancılar hayal kırıklığı yaratamaz.",
+    "🤍 İnsan zamanla herkesi affedebilir. Ama kendini affetmek, bazen bütün bir ömür sürer.",
+    "🤍 Bir kalbin yorulduğunu anlamak için ağlamasını bekleme. Bazı insanlar gülümserken de sessizce tükenir.",
+    "🤍 Hayat bazen sana istediğini vermez. Çünkü hak ettiğin şey, istediğinden çok daha farklı bir yerde seni bekliyordur.",
+    "🤍 En güzel vedalar bile biraz hüzün taşır. Çünkü gerçekten değer verilen hiçbir şey tamamen geride bırakılamaz.",
+    "🤍 Her insan bir iz bırakır. Kimisi yüzünde bir tebessüm, kimisi kalbinde kapanmayan bir boşluk olur.",
+    "🤍 Kendini herkese anlatmaya çalışma. Seni anlamak isteyen biri, cümlelerinden önce sessizliğini dinler.",
+    "🤍 Güven, yavaş yavaş büyüyen bir ağaç gibidir; ama devrilmesi için tek bir yanlış yeter.",
+    "🤍 İnsan bazen yanlış insanlara değil, yanlış zamanlara denk gelir. Belki de en büyük talihsizlik budur.",
+    "🤍 Hayatta bazı yollar yalnız yürünür. Çünkü insanın en büyük hesaplaşması, kendisiyle olandır.",
+    "🤍 Bir gün herkes seni olduğun gibi kabul etmeyebilir. Ama en önemlisi, senin kendinden vazgeçmemendir.",
+    "🤍 Bazı özürler çok geç gelir. Çünkü zaman, kırılan kalbin beklemeyi bıraktığı yerde durmaz.",
+    "🤍 Mutluluk, her istediğine sahip olmak değil; sahip olduklarının kıymetini kaybetmeden bilmektir.",
+    "🤍 Bir insanın kalbine dokunmak kolay değildir. Ama kırmak için çoğu zaman tek bir cümle yeter.",
+    "🤍 En güzel insanlar, en çok acıyı yaşamış ama bunu başkalarına yaşatmamayı seçmiş olanlardır.",
+    "🤍 İnsan en çok, artık hiçbir şey hissetmediğini sandığı gün yeniden kırılır.",
     "🤍 Kaybolmuş hissetmek bazen yön bulmanın başlangıcıdır.",
     "🤍 Küçük adımlar bile seni olduğun yerden çıkarır.",
     "🤍 Kendini sürekli eleştirmek, gelişmekle aynı şey değildir.",
@@ -323,6 +366,26 @@ SOZ = [
     "🤍 Herkes güçlü görünmez, herkes güçlü de değildir zaten.",
     "🤍 Bazı günler sadece “dayanmak” yeterlidir.",
     "🤍 İyileşmek düz bir çizgi değildir.",
+    "🤍 İnsan bazen en çok, anlatmaya çalıştığı şey anlaşılmadığında yorulur. Çünkü bazı duyguların sesi vardır ama kelimesi yoktur.",
+    "🤍 Birini unutmak, adını hatırlamamak değildir. Onu hatırladığında canının artık eskisi kadar acımamasıdır.",
+    "🤍 Hayat sana herkesi neden kaybettiğini değil, yanında kalanların neden kaldığını öğrettiğinde büyümeye başlarsın.",
+    "🤍 Herkes bir gün gider. Kimisi kapıyı çarparak, kimisi sessizce... Ama en çok, hiçbir şey söylemeden gidenler eksik kalır içinde.",
+    "🤍 Bir kalbi kırmak için yüksek sesle konuşmaya gerek yoktur. Bazen söylenmeyen tek bir cümle, söylenen bin cümleden daha çok incitir.",
+    "🤍 Zaman yaraları iyileştirmez; sadece acıyla yaşamayı öğretir. İyileşen şey yara değil, insandır.",
+    "🤍 İnsan, en çok değer verdiği kişiye karşı kırılır. Çünkü yabancıların yaptığı hiçbir şey, sevdiklerinin sessizliği kadar can yakmaz.",
+    "🤍 Bazı insanlar hayatına mutluluk getirmez. Ama gittiklerinde, sana kendini tanımayı öğretirler.",
+    "🤍 Kimse aynı insan olarak kalmaz. Ya yaşadıkları değiştirir onu ya da sustukları.",
+    "🤍 Güven, bir kez kırıldığında yeniden kurulabilir belki; ama hiçbir zaman ilk hâli kadar masum olmaz.",
+    "🤍 Herkes seni tanıyabilir ama çok az insan seni gerçekten anlayabilir. Çünkü görmek başka, hissetmek başkadır.",
+    "🤍 Bazen bir insanı affedersin ama ona eskisi gibi bakamazsın. Çünkü kalp unutmaktan önce kırılmayı öğrenir.",
+    "🤍 En güzel insanlar kusursuz olanlar değil, kırıldığı hâlde kimseyi kırmamayı seçenlerdir.",
+    "🤍 İnsan bazı geceler uyuyamaz. Çünkü gözlerini kapattığında aklı susar ama kalbi konuşmaya devam eder.",
+    "🤍 Hayatta herkes bir şeyler kaybeder. Önemli olan neyi kaybettiğin değil, kaybettikten sonra nasıl biri olduğundur.",
+    "🤍 Bir gün dönüp arkana baktığında pişman olacağın şey, yaptıkların değil; yapmaya cesaret edemediklerin olacak.",
+    "🤍 Her vedanın bir sesi vardır. Kimisi gözyaşıdır, kimisi sessizlik... Ama en çok da yarım kalan cümleler yankılanır insanın içinde.",
+    "🤍 İnsan bazen güçlü olduğu için değil, başka seçeneği olmadığı için dimdik durur.",
+    "🤍 Bazı yollar yanlış olduğu hâlde yürünür. Çünkü insan bazen doğru yolu değil, doğru dersi arar.",
+    "🤍 Kendini herkese anlatmaya çalışma. Seni gerçekten anlamak isteyen biri, sessizliğinde bile ne söylemek istediğini hisseder.",
     "🤍 Kendine verdiğin değer, dünyaya nasıl baktığını değiştirir.",
     "🤍 Başkalarının sana inanmasını bekleme, önce kendine inan!"
 ]
@@ -332,11 +395,19 @@ SLAP_LIST = [
 
     "🩴 {a}, {b}'a terlikle girişti 😂",
     "📺 {a}, {b}'nin üstüne televizyon fırlattı.",
-    "🥛 {a}, {b}'nin kafasına yoğurt döktü.",
     "🪑 {a}, {b}'a sandalye attı 💀",
     "🧃 {a}, {b}'nin suratına meyve suyu sıktı.",
     "🛏️ {a}, {b}’a yumuşak bir yastık fırlattı 🛏️",
-    "✈️ {a}, {b}’nin kafasına kağıt uçak attı ✈️",
+    "{a}, {b}'yi ensesinden yakalayıp yere yapıştırdı. 💥",
+    "{a}, {b}'yi tek hamlede duvara çarptı. 🧱",
+    "{a}, {b}'yi havaya savurup yere indirdi. 🌪️",
+    "{a}, {b}'yi yakaladığı gibi yere çiviledi. ⚡",
+    "{a}, {b}'yi tuttuğu gibi masanın üstüne fırlattı. 💢",
+    "{a}, {b}'yi boğuşmanın ortasında yere serdi. 😈",
+    "{a}, {b}'yi tekmeyle birkaç metre öteye savurdu. 👢",
+    "{a}, {b}'yi yumruk yağmuruna tuttu. 👊",
+    "{a}, {b}'yi kolundan yakalayıp duvara yasladı. 💥",
+    "{a}, {b}'yi sırtüstü yere düşürdü. 🌀",
     "📺 {a}, {b}’a uzaktan kumandayla saldırdı 📺",
     "🥊 {a}, {b}’a uçan tekme attı! 🥊"
     "💥 {a}, {b}’nin ensesine Osmanlı Tokadı attı! 💥",
@@ -410,7 +481,36 @@ SANS_YORUMLARI = [
     "🌙 Bugün enerjin oldukça yüksek.",
     "🪐 Ufak aksiliklere dikkat et.",
     "🔥 Şans seviyen resmen patlıyor.",
-    "😼 Zuzu bugün sana güveniyor.",
+    "🍀 Bugün şans senin tarafında. Cesur davranırsan güzel bir sürprizle karşılaşabilirsin.",
+    "🌤️ Şansın bugün inişli çıkışlı. Büyük kararları biraz ertelemek iyi olabilir.",
+    "✨ Beklenmedik bir haber yüzünü güldürebilir.",
+    "💸 Küçük bir maddi kazanç kapını çalabilir.",
+    "❤️ Kalbinle ilgili güzel bir gelişme yaşayabilirsin.",
+    "📩 Uzun zamandır beklediğin bir mesaj bugün gelebilir.",
+    "🎯 Şansın özellikle yeni başlangıçlarda seninle.",
+    "🌙 Bugün sezgilerine güven; sana doğru yolu gösterebilir.",
+    "🎲 Risk alırsan kazanma ihtimalin düşündüğünden yüksek.",
+    "🦋 Küçük bir tesadüf büyük bir mutluluğa dönüşebilir.",
+    "🌈 Bugün güldüğün kadar şansın da artacak.",
+    "⚠️ Acele kararlar şansını tersine çevirebilir.",
+    "🔮 Şans kapını çalacak ama fark etmen gerekecek.",
+    "🍀 Beklenmedik biri sana iyilik yapabilir.",
+    "🎁 Bugün güzel bir sürpriz seni bekliyor olabilir.",
+    "🌟 Şans yıldızın parlıyor; kendine güven.",
+    "💭 İçinden geçen ilk fikir bugün sana kazandırabilir.",
+    "🕊️ Bugün huzur, en büyük şansın olacak.",
+    "🎉 Şansın, doğru insanlarla karşılaşmanda saklı.",
+    "🌌 Her şey planladığın gibi gitmeyebilir ama sonunda yüzün gülecek.",
+    "🪙 Küçük bir risk, büyük bir fırsata dönüşebilir.",
+    "🌸 Bugün bir tebessüm bile şansını değiştirebilir.",
+    "⏳ Sabırlı olursan beklediğin kapı açılacak.",
+    "📚 Yeni bir şey öğrenmek sana beklenmedik fırsatlar getirebilir.",
+    "🧩 Bugün eksik kalan bir parçayı tamamlayacaksın.",
+    "🔥 Cesaretin kadar şansın da büyüyor.",
+    "🌊 Akışına bıraktığın işler daha güzel sonuçlanabilir.",
+    "💎 Bugünün en büyük şansı, fark etmediğin küçük ayrıntılarda gizli.",
+    "🎈Şans bazen sadece doğru zamanda gülümsemektir.",
+    "☁️ Bugün bulutlu görünse de günün sonunda güneş senin için açacak."
     "🍀 Bugün küçük bir şans kapını çalabilir, gözünü açık tut.",
     "✨ Beklemediğin bir yerden güzel bir gelişme gelebilir.",
     "💫 Şansın orta seviyede ama gün içinde artabilir.",
@@ -426,21 +526,59 @@ SANS_YORUMLARI = [
 
 MOOD_YORUMLARI = [
     "🌧️ İçine kapanık hissediyorsun ama geçecek.",
-        "🌤️ Bugün her şeye karşı biraz umursamaz hissediyorsun.",
+    "🌤️ Bugün her şeye karşı biraz umursamaz hissediyorsun.",
     "🌙 Kafan dolu ama nedenini tam sen de bilmiyorsun.",
     "☁️ Sessiz kalmak bugün konuşmaktan daha iyi geliyor.",
     "🌧️ Biraz kırgın hissediyorsun ama belli etmemeyi seçiyorsun.",
     "🌊 Duyguların bugün sürekli değişiyor.",
+    "🌼 Bugün kırılgan hissedebilirsin ama bu seni güçsüz yapmaz.",
+    "🌼 Küçük bir tebessüm bütün gününün yönünü değiştirebilir.",
+    "🌼 Bugün beklentilerini biraz azaltırsan kendini daha hafif hissedebilirsin.",
+    "🌼 Kendine göstereceğin anlayış bugün en çok ihtiyacın olan şey olabilir."
     "🌸 Küçük şeyler bile yüzünü güldürebilir.",
     "🌤️ İçten içe güzel bir haber bekliyorsun.",
     "🌫️ Bugün hiçbir şey yapmak istemiyorsun.",
     "🌈 İçinde sebebini bilmediğin bir umut var.",
     "🌙 Geçmişi biraz fazla düşünüyorsun.",
     "🌧️ Bugün duyguların mantığının önüne geçebilir.",
+    "🌿 Bugün kafandaki gürültü biraz azalıyor. Kendini uzun zamandır hissetmediğin kadar sakin hissedebilirsin.",
+    "💭 Bugün bazı şeyleri sorgulamak isteyeceksin. Cevap bulamasan bile düşünmek sana iyi gelebilir.",
+    "☕ Bugün enerjini herkese yetiştirmeye çalışma. Birazını da kendin için sakla.",
+    "🌙 Bugün geçmişe dalıp gitmen mümkün. Ama orada uzun süre kalmamaya çalış.",
+    "🫶 Bugün birinin samimiyeti bütün ruh halini değiştirebilir.",
+    "✨ İçinde küçük de olsa bir umut var. Onu büyütmek tamamen senin elinde.",
+    "🌧️ Bugün kendini biraz hassas hissedebilirsin. Her şeyi kişisel algılamamaya çalış.",
+    "🌸 Bugün kendine karşı daha sabırlı olman gereken bir gün olabilir.",
+    "🍃 Bugün hayatı biraz akışına bırakmak sana düşündüğünden daha iyi gelecek.",
+    "🌼 Küçük bir mola, bugün ihtiyacın olan en değerli şey olabilir.",
+    "💫 Bugün iç sesin sana doğru yolu göstermeye çalışıyor. Onu duymaya çalış.",
+    "🌿 Bugün huzuru büyük olaylarda değil, küçük anlarda bulacaksın.",
+    "🕊️ Bugün kimseyi kırmak istemeyeceksin. Kalbin her zamankinden biraz daha yumuşak.",
+    "🌙 Bugün sessizlik sana rahatsız edici değil, aksine iyi gelecek.",
+    "☁️ Bugün dalgın olabilirsin. Zihnin senden birkaç adım önde gidiyor gibi.",
+    "💭 Bugün vereceğin kararları aceleye getirmemek en doğrusu olabilir.",
+    "✨ Bugün içinde yeni bir başlangıç yapma isteği hissedebilirsin.",
+    "🌊 Bugün duyguların sık sık değişebilir. Kendine bunu yaşamak için izin ver.",
+    "🍂 Bugün geçmişi değil, bugünü yaşamaya çalışırsan kendini daha hafif hissedebilirsin.",
+    "🌤️ Bugün moralin yavaş yavaş yerine geliyor. Kendine biraz zaman tanı.",
+    "🤍 Bugün seni en çok mutlu edecek şey, beklemediğin bir ilgi olabilir.",
+    "🎧 Bugün sevdiğin müzikler ruh haline düşündüğünden daha çok dokunabilir.",
+    "📖 Bugün kendin hakkında yeni bir şey fark edebilirsin.",
+    "🌱 Bugün küçük de olsa attığın her adım seni ilerletecek.",
+    "💛 Bugün biri seni düşündüğünü belli edebilir ve bu bütün gününe yansıyabilir.",
+    "🌅 Bugün yeni bir sayfa açmak için kötü bir gün değil.",
+    "🪴 Bugün zihnini dinlendirecek küçük alışkanlıklar edinmek isteyebilirsin.",
+    "🫧 Bugün içindeki yükü biraz olsun bırakmaya hazırsın gibi görünüyor.",
+    "🌠 Bugün her şeyi çözmeye çalışma. Bazen sadece günü yaşamak yeterlidir.",
+    "😌 Bugün kendini olduğun gibi kabul etmek sana en büyük huzuru verebilir.",
     "🍂 Eski anılar aklına sık sık geliyor.",
     "🌼 Ufak şeylerden mutlu olabilecek bir gündesin.",
     "🌪️ Kafan biraz karışık ama toparlanacak.",
     "⭐ Bugün enerjin beklediğinden daha yüksek olabilir.",
+    "🌙 Bugün içine dönük olabilirsin. Her zaman konuşmak zorunda değilsin.",
+    "🌙 İnsanlardan biraz uzak durmak istemen tamamen normal.",
+    "🌙 Bugün kendi düşüncelerinle vakit geçirmek sana iyi gelebilir.",
+    "🌙 Sessiz geçen bir gün bazen en huzurlu gün olabilir.",
     "🌤️ İnsanlarla konuşmak sana iyi gelebilir.",
     "🌧️ Biraz yalnız kalmak isteyebilirsin.",
     "🌊 Bugün duygusal olma ihtimalin yüksek.",
@@ -450,11 +588,70 @@ MOOD_YORUMLARI = [
     "🌦️ Biraz kararsız hissediyorsun.",
     "🌸 İçinden yeni bir başlangıç yapmak geliyor.",
     "🌫️ Dalgınlığın bugün kendini belli edebilir.",
+    "🌤️ Bugün enerjin yüksek. Yeni şeyler denemek için güzel bir gün.",
+    "🌙 Biraz dinlenmeye ihtiyacın var gibi görünüyor. Kendine zaman ayır.",
+    "☕ Ruh halin sakin ama içinde söylemek istediğin çok şey var.",
+    "🌸 Bugün küçük şeylerden mutlu olacağın bir gün.",
+    "⚡ Enerjin dalgalı. Acele kararlar vermemeye çalış.",
+    "🎵 Bugün en iyi ilacın sevdiğin bir şarkı olabilir.",
+    "🍀 Moralini yükseltecek güzel bir haber kapıda olabilir.",
+    "🌧️ Biraz duygusalsın ama bu da geçecek.",
+    "😌 Bugün huzur arıyorsun. Kalabalıklardan biraz uzaklaşmak iyi gelebilir.",
+    "🔥 Motivasyonun zirvede! Başlamak için doğru zaman.",
+    "🦋 Bugün yeni insanlarla tanışmaya açıksın.",
+    "💭 Kafanı kurcalayan bir konu var ama cevabı düşündüğünden daha yakın.",
+    "🌊 Akışına bıraktığın şeyler seni daha mutlu edecek.",
+    "📚 Bugün kendine yeni bir şey katmak isteyebilirsin.",
+    "☀️ Gülümsemen bugün bir başkasının gününü güzelleştirebilir.",
+    "🌌 Biraz yalnız kalmak sana iyi gelebilir.",
+    "🎯 Odaklandığın her işte başarılı olabilecek bir ruh halindesin.",
+    "🕊️ İç huzurun bugün en büyük gücün olacak.",
+    "🍫 Kendini ödüllendirmeyi unutma; bunu hak ediyorsun.",
+    "💤 Uykunu ihmal etmiş gibisin. Biraz dinlenmek sana iyi gelecek.",
+    "🎈 Bugün kahkaha atacağın güzel bir an yaşayabilirsin.",
+    "🌿 Hayatın temposunu biraz yavaşlatmak sana iyi gelecek.",
+    "🤍 Kalbin kırgın olsa da umudunu kaybetme.",
+    "🚀 İçinde büyük bir potansiyel var; bugün onu gösterebilirsin.",
+    "🌠 Sezgilerin bugün sana doğru yolu gösterebilir.",
+    "🎨 Yaratıcılığın bugün zirvede.",
+    "🌼 Geçmişi düşünmek yerine bugünü yaşamayı dene.",
+    "🌙 Bazı cevaplar sessizlikte saklıdır.",
+    "💎 Kendine güvendiğin an her şey değişmeye başlayacak."
     "🌈 İçten içe her şeyin düzeleceğine inanıyorsun.",
     "💭 Bugün çok düşünecek, az konuşacaksın.",
     "⚡ Sabrın bugün biraz daha çabuk tükenebilir.",
     "🌊 Hislerini içinde yaşamayı tercih ediyorsun.",
     "🌻 Küçük bir ilgi bile moralini yükseltebilir.",
+    "🌤️ Bugün her şey mükemmel gitmeyebilir ama moralini bozacak kadar da kötü görünmüyor.",
+    "🍂 Bugün biraz kendi hâlinde olmayı tercih edebilirsin. Bunun için kendini suçlama.",
+    "☕ Bugün yavaş ilerlemek sana daha iyi gelecek. Her şeye yetişmek zorunda değilsin.",
+    "🌸 Bugün beklemediğin küçük bir şey yüzünü gülümsetebilir.",
+    "🌙 Bugün biraz düşüncelisin. Belki de zihnin sadece kısa bir mola istiyordur.",
+    "🎧 Bugün kulaklığını takıp kendi dünyana çekilmek isteyebilirsin.",
+    "💭 Bugün bazı şeyleri fazla düşünebilirsin. Kendine biraz nefes alacak alan bırak.",
+    "🌧️ Bugün duyguların biraz karışık olabilir. Bu da insan olmanın bir parçası.",
+    "🌿 Bugün huzuru kalabalıkta değil, sessizlikte bulabilirsin.",
+    "🌈 Bugün uzun zamandır hissetmediğin kadar hafif hissedebilirsin.",
+    "✨ Bugün kendine güvenin yavaş yavaş yerine geliyor gibi.",
+    "🫶 Bugün biri sana farkında olmadan iyi gelebilir.",
+    "🌊 Bugün bazı şeyleri oluruna bırakmak en doğru seçim olabilir.",
+    "📖 Bugün eski bir anı aklına düşebilir ve yüzünde küçük bir tebessüm bırakabilir.",
+    "🌼 Bugün küçük mutlulukları fark ettiğinde günün daha güzel geçecek.",
+    "🕊️ Bugün içini sıkan şeyleri biraz olsun geride bırakabilecek gibisin.",
+    "🎈 Bugün sebepsiz yere bile mutlu hissedebilirsin. Tadını çıkar.",
+    "🔥 Bugün motivasyonun yüksek. Başlamak için bahane arama.",
+    "🌌 Bugün biraz yalnız kalmak sana sandığından daha iyi gelebilir.",
+    "🌞 Bugün enerjin çevrendekilere de yansıyacak gibi görünüyor.",
+    "🍀 Bugün şansından çok, tavrın günü güzelleştirecek.",
+    "🌠 Bugün içinden gelen ilk his seni doğru yere götürebilir.",
+    "🎵 Bugün tek bir şarkı bile bütün modunu değiştirebilir.",
+    "💤 Bugün bedenin kadar zihnin de dinlenmek istiyor olabilir.",
+    "🧩 Bugün uzun zamandır eksik hissettiğin bir parçayı tamamlayacak bir konuşma yaşayabilirsin.",
+    "🌺 Bugün kendine biraz daha nazik davranmayı dene.",
+    "📸 Bugün hatırlamaya değer küçük bir an yaşayabilirsin.",
+    "🤍 Bugün seni mutlu edecek şey büyük değil, samimi olacak.",
+    "🪴 Bugün biraz yavaşlamak sana düşündüğünden daha fazla iyi gelebilir.",
+    "🌙 Bugün her şeyi çözmek zorunda değilsin; bazen sadece günü tamamlamak yeterlidir."
     "🌠 Bugün sürprizlere açık bir ruh halindesin.",
     "🔮 Bugün sezgilerin mantığından daha güçlü olabilir.",
     "🌙 İç sesin sana bir şey anlatmaya çalışıyor.",
@@ -462,12 +659,20 @@ MOOD_YORUMLARI = [
     "🌌 Bugün tesadüf gibi görünen şeylere dikkat edeceksin.",
     "🍀 Şansın küçük detaylarda saklı olabilir.",
     "💫 İçinde tarif edemediğin bir heyecan var.",
+    "💭 Bugün düşünceli bir ruh halindesin. Zihnin sürekli bir şeylerle meşgul olabilir.",
+    "💭 Bazı soruların cevabını bugün bulamayabilirsin. Her cevabın hemen gelmesi gerekmiyor.",
+    "💭 Gelecekle ilgili planlar aklını fazlasıyla meşgul edebilir.",
+    "💭 Bugün kendinle baş başa kalmak sana iyi gelebilir.",
     "🌠 Uzun zamandır ertelediğin bir şeyi hatırlayabilirsin.",
     "🌙 Kalbinin sesi bugün daha baskın olabilir.",
     "☄️ Beklenmedik bir mesaj moralini değiştirebilir.",
     "🌈 Bugün duyguların seni şaşırtabilir.",
     "☀️ Enerjin yükseliyor, bugün daha iyi hissedeceksin.",
     "🌙 Biraz kafa dinlemeye ihtiyacın var gibi.",
+    "🌧️ Bugün biraz hassassın. Normalde takılmayacağın şeyler bile canını sıkabilir.",
+    "🌧️ Kendine bugün biraz daha nazik davran. Her günü aynı güçle geçirmek zorunda değilsin.",
+    "🌧️ Bugün duygularını bastırmak yerine kabul etmek sana daha iyi gelebilir.",
+    "🌧️ Küçük bir yanlış anlaşılma bile moralini etkileyebilir. Hemen kötü düşünmemeye çalış.",
     "💫 Duygusal ama güçlü bir moddasın.",
     "🫧 Kendine fazla yükleniyorsun.",
     "🌿 Sessizlik sana iyi gelebilir bugün.",
@@ -480,6 +685,10 @@ MOOD_YORUMLARI = [
     "💭 Çok fazla düşünüyorsun, biraz rahatla.",
     "🌊 Dalgalı ama kontrol edilebilir bir ruh hali.",
     "✨ İçinde yeni bir başlangıç isteği var.",
+    "🫶 Bugün duygusal bir moddasın. Eski bir fotoğraf, bir şarkı ya da küçük bir anı seni geçmişe götürebilir.",
+    "🫶 Kalbin bugün olaylara biraz daha hassas yaklaşabilir. Bunun kötü bir şey olduğunu düşünme.",
+    "🫶 Bugün sevdiklerinden gelecek küçük bir ilgi bile bütün modunu değiştirebilir.",
+    "🫶 İçinden geçenleri anlatmak isteyebilirsin ama doğru kelimeleri bulmakta zorlanabilirsin.",
     "Bakıyorum da keyifler gıcır. Güneş açmış, kuşlar uçuyor, senin de için kıpır kıpır olmuş sanki. Bu modunu hiç bozma olur mu? 🌸",
     "Bugün üzerinde çok tatlı bir dinginlik var. Aceleyle iş yapacak modda değilsin, her şeyi ağırdan alıp anın tadını çıkarıyorsun sanki. Aynen böyle devam! 🍃",
     "Senin modun bugün resmen 'Error 404: Enerji Bulunamadı.' Pilin bitmiş, bataryan sıfırlanmış gibi duruyorsun. Sana acilen iki satır tatlı söz ve biraz dinlenmek lazım... 💤",
@@ -494,6 +703,36 @@ MOOD_YORUMLARI = [
     "🧠 Zihnin dolu ama toparlanıyor.",
     "💤 Biraz yorgunluk hissi olabilir."
 
+]
+
+ZUZU_CEVAPLARI = [
+    "Efendim? 🌸",
+    "Buradayım. 😊",
+    "Beni mi çağırdın? 👀",
+    "Dinliyorum seni. 💛",
+    "Ne oldu bakalım? 😌",
+    "Yine mi ben? 😂",
+    "Hazırım! Söyle bakalım. ✨",
+    "Beni özledin galiba. 😼",
+    "Çağırdığına göre önemli bir şey var. 🤔",
+    "Buyur, seni dinliyorum. 🌼",
+
+    "Of... Daha yeni oturmuştum. 😮‍💨",
+    "Ne var yine? 😒",
+    "Bir dakika dinleneyim dedim... 😩",
+    "Yine mi 'Zuzu'? 😭",
+    "İsmimi bu kadar sevmen biraz korkutucu olmaya başladı. 👀",
+    "Tam uyuyordum... 😴",
+    "Şikâyet etmiyorum ama bugün çok çağrıldım. 🤧",
+    "Bir gün de beni ben çağırayım. 😤",
+    "Bana seslenmeden de duramıyorsun. 😌",
+    "Tam çay içiyordum... ☕",
+
+    "İyi misin? Öyle seslendin sanki. 🥹",
+    "Merak ettim, neden çağırdın? 💭",
+    "Bugün nasıl hissediyorsun? 🌸",
+    "Ben buradayım, sen yeter ki yaz. 🤍",
+    "Çağrıldım ve geldim. 🚶",
 ]
 
 ROAST_LIST = [
@@ -530,8 +769,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🐾 <b>Selam {kullanici}! Ben Zuzu!</b>\n\n"
             f"Gruplar içinde sohbeti daha canlı ve eğlenceli hale getirmek için geliştirilmiş bir botum.😻\n\n"
             f"• <b>Oyunlar oynatırım</b>\n"
-            f"• <b>Küçük etkileşimler sunarım</b>\n"
-            f"• <b>XP sistemi ile rekabet oluştururum</b> 🐈\n\n"
+            f"• <b>Küçük etkileşimler sunarım</b>\n\n"
             f"👇 Aşağıdaki menüden tüm komutlarıma ulaşabilirsin ✨"
         )
 
@@ -557,17 +795,22 @@ async def ship(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_spam(update.effective_user.id):
         return
 
-    if not context.args:
-        await update.message.reply_text("💘 Birini etiketlemelisin!\nÖrnek: /ship @kullanici")
-        return
-
     user1 = update.message.from_user.first_name
-    user2 = context.args[0]
+ 
+    if update.message.reply_to_message:
+        user2 = update.message.reply_to_message.from_user.first_name
 
+    elif context.args:
+        user2 = context.args[0]
+    else:
+        await update.message.reply_text(
+            "💘 Bir kullanıcı etiketle veya bir mesaja yanıt ver!"
+        )
+        return
     oran = random.randint(0, 100)
 
     if oran <= 20:
-        yorum = random.choice(SHIP_YORUMLARI["0-20"])
+     yorum = random.choice(SHIP_YORUMLARI["0-20"])
     elif oran <= 40:
         yorum = random.choice(SHIP_YORUMLARI["21-40"])
     elif oran <= 60:
@@ -678,6 +921,18 @@ async def cesaret(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         f"cesaret seçtin 🔥\n\n😈 Görev:\n{gorev}"
     )
+async def zuzu_listener(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
+
+    text = update.message.text.lower()
+
+    if text.startswith("/"):
+        return
+
+    if "zuzu" in text:
+        await update.message.reply_text(random.choice(ZUZU_CEVAPLARI))
+
 
 async def soz(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if is_spam(update.effective_user.id):
@@ -696,79 +951,13 @@ async def soz(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-async def rank(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    user = update.effective_user
-
-    xp = get_user_xp(user.id)
-
-    level = calculate_level(xp)
-
-    sonraki_level_xp = (level * 10) ** 2
-
-    text = (
-        f"🏆 <b>{user.first_name} Profili</b>\n\n"
-        f"⭐ Level: <b>{level}</b>\n"
-        f"✨ XP: <b>{xp}</b>\n"
-        f"🎯 Sonraki level için: <b>{sonraki_level_xp - xp} XP</b>"
-    )
-
-    await update.message.reply_text(
-        text,
-        parse_mode="HTML"
-    )
-
-async def lider(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    if not xp_data:
-        await update.message.reply_text(
-            "😿 Henüz kimse XP kazanmamış."
-        )
-        return
-
-    sorted_users = sorted(
-        xp_data.items(),
-        key=lambda x: x[1]["xp"],
-        reverse=True
-    )
-
-    text = "👑 <b>Zuzu'nun Liderleri</b>\n\n"
-
-    medals = ["🥇", "🥈", "🥉"]
-
-    for index, (user_id, data) in enumerate(sorted_users[:10]):
-
-        try:
-            user = await context.bot.get_chat(user_id)
-            name = user.first_name
-
-        except:
-            name = "Bilinmeyen Kullanıcı"
-        xp = data["xp"]
-        level = calculate_level(xp)
-
-        if index < 3:
-            icon = medals[index]
-        else:
-            icon = "✨"
-
-        text += (
-            f"{icon} <b>{name}</b>\n"
-            f"└ ⭐ Level {level} • {xp} XP\n\n"
-        )
-
-    await update.message.reply_text(
-        text,
-        parse_mode="HTML"
-    )
-
 async def grup_id_ver(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_chat.type == "private":
         await update.message.reply_text("❌ Bu komut sadece gruplarda çalışır.")
         return
     chat_id = update.effective_chat.id
     chat_title = update.effective_chat.title
-    text = f"ℹ️ <b>Grup Bilgileri:</b>\n\n📛 <b>Grup Adı:</b> {chat_title}\n🆔 <b>Grup ID:</b> <code>{chat_id}</code>\n\n🤫"
+    text = f"ℹ️ <b>Grup Bilgileri:</b>\n\n📛 <b>Grup Adı:</b> {chat_title}\n🆔 <b>Grup ID:</b> <code>{chat_id}</code>\n"
     await update.message.reply_text(text, parse_mode="HTML")
 
 async def slap(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -847,18 +1036,6 @@ async def roast(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-async def message_xp(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    if update.effective_chat.type == "private":
-        return
-
-    if not update.message:
-        return
-
-    user_id = update.effective_user.id
-
-    add_xp(user_id, random.randint(2, 5))
-
 async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     if is_spam(query.from_user.id): return
@@ -889,18 +1066,14 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     "• /c → Cesaret görevi\n"
     "• /soz → Günlük motivasyon\n"
     "• /slap @kullanici → Minik şaka\n"
-    "• /roast → Zuzu seni roastlasın\n\n"
-    "• /hd → Hava Durumu (şehir)\n"
+    "• /roast → Zuzu seni roastlasın\n"
+    "• /hd → Hava Durumu (şehir)\n\n"
 
     "💞 <b>Sosyal</b>\n"
     "• /ship @kullanici → Uyumluluk testi 💕\n"
-    "• /burc → Burç yorumu \n\n"
+    "• /burc → Burç yorumu \n"
     "• /sans → Günlük şansın \n"
     "• /mood → Ruh hali analizi \n\n"
-
-    "🏆 <b>Seviye Sistemi</b>\n"
-    "• /rank → Profilin \n"
-    "• /lider → Lider tablosu \n\n"
 
     "✨ Zuzu burada seni eğlendirmek için var 🐾"
 )
@@ -993,28 +1166,11 @@ async def error_handler(update, context):
         logger.error(f"Hata log kanalına gönderilemedi: {e}")
        
     
-async def auto_save():
-    global xp_dirty
+    if __name__ == "__main__":
 
-    while True:
-        await asyncio.sleep(30)
-
-        if xp_dirty:
-            save_json(XP_FILE, xp_data)
-            xp_dirty = False
-            logger.info("XP verisi kaydedildi.")
-
-
-if __name__ == "__main__":
-
-    keep_alive()
+        keep_alive()
 
     app = Application.builder().token(TOKEN).build()
-
-    async def post_init(app):
-        asyncio.create_task(auto_save())
-
-    app.post_init = post_init 
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("d", dogruluk))
@@ -1023,18 +1179,16 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("ship", ship))
     app.add_handler(CommandHandler("burc", burc_yorumu))
     app.add_handler(CommandHandler("grup_id", grup_id_ver))
-    app.add_handler(CommandHandler("rank", rank))
     app.add_handler(CommandHandler("slap", slap))
-    app.add_handler(CommandHandler("lider", lider))
     app.add_handler(CommandHandler("sans", sans))
     app.add_handler(CommandHandler("mood", mood))
     app.add_handler(CommandHandler("roast", roast))
     app.add_handler(CommandHandler("hd", hd))
-
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, zuzu_listener))
     app.add_handler(CallbackQueryHandler(weather_callback, pattern=r"^hd"))
     app.add_handler(CallbackQueryHandler(buttons))
     app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, log_private_messages))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, message_xp))
+   
     
     app.add_error_handler(error_handler)
 

@@ -111,7 +111,7 @@ async def hd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not context.args:
         await update.message.reply_text(
-            "❗ Kullanım:\n/hd <şehir>\n\nÖrnek:\n/hd Ankara"
+            "❗Örnek:\n/hd Ankara"
         )
         return
 
