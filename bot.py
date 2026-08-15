@@ -5,6 +5,7 @@ import logging
 import json
 import time
 
+from datetime import datetime
 from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
@@ -82,6 +83,19 @@ def is_spam(user_id):
             return True 
     user_cooldowns[user_id] = now
     return False
+
+def kalan_sure(sinav_tarihi):
+    simdi = datetime.now()
+    fark = sinav_tarihi - simdi
+
+    if fark.total_seconds() <= 0:
+        return "Sınav zamanı geldi! 🎓"
+
+    gun = fark.days
+    saat = fark.seconds // 3600
+    dakika = (fark.seconds % 3600) // 60
+
+    return f"{gun} gün {saat} saat {dakika} dk"
 
 
 async def is_user_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -757,6 +771,89 @@ ROAST_LIST = [
     "📶 Bağlantın var ama sinyal yok gibi."
 ]
 
+SINAV_TARIHLERI = {
+        "yks": datetime(2027, 6, 19, 10, 15),
+
+        "kpss_lisans": datetime(2026, 9, 6, 10, 15),
+        "kpss_onlisans": datetime(2026, 10, 4, 10, 15),
+        "kpss_ortaogretim": datetime(2026, 10, 25, 10, 15),
+        "ekpss": datetime(2026, 4, 19, 10, 15),
+        "ags": datetime(2026, 7, 26, 10, 15),
+}
+
+MOTIVASYONLAR = [
+    "Bugün az da olsa ilerle. Yeter ki durma. 🌱",
+    "Her gün biraz daha yaklaşıyorsun. ✨",
+    "Küçük adımlar da hedefine götürür. 🫶",
+    "Bugünkü emeğin, yarınki rahatlığın. 🌸",
+    "Yavaş olabilirsin, yeter ki vazgeçme. 💫",
+    "Bir gün değil, her gün çalış. 📚",
+    "Kendine inanmak da çalışmanın bir parçası. 🤍",
+    "Bugün yaptığın şey, gelecekteki seni oluşturuyor. 🌷",
+    "Henüz bitmedi. Devam etmek için hâlâ vaktin var. ⏳",
+    "Mükemmel olmak zorunda değilsin, devam etmen yeter. 🌿",
+
+    "Rakibin başkası değil, dünkü sensin. 🎯",
+    "Bahane değil, bir soru daha. 📖",
+    "Bugün pes edersen, yarın keşke deme. 🔥",
+    "Hedef uzakta olabilir, ama her gün biraz daha yaklaşıyorsun. 🌟",
+    "Canın istemese bile biraz yap. Başlamak gerisini getirir. ⚡",
+    "Bir konu daha bitir. Bir adım daha at. 🏃",
+    "Şu an zor geliyor olabilir. Ama değecek. 🤍",
+    "Çalıştığın hiçbir gün boşa gitmez. 🌟",
+    "Bugün kendine verdiğin sözü tut. 🫵",
+    "Sonuç günü geldiğinde, bugünleri hatırlayacaksın. 🎓",
+
+    "Hadi, Zuzu bugün de senden bir soru bekliyor. 🐱📚",
+    "Ders zamanı! Zuzu kaçışını gördü. 👀📖",
+    "Biraz ders, sonra gönül rahatlığı. 🐱✨",
+    "Zuzu diyor ki: Bugün de pes etmek yok! 🐾",
+    "Çalış bakalım, Zuzu başarı gününü bekliyor. 🎓🐱",
+    "Bir test daha çöz, sonra Zuzu'yla gururlan. 🐾💗",
+    "Hedef belli, şimdi sıra sende. Zuzu burada. 🐱🎯",
+    "Bugünkü minik çalışman, yarının büyük mutluluğu. 🌸🐾"
+]
+
+async def yks(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    sure = kalan_sure(SINAV_TARIHLERI["yks"])
+    motivasyon = random.choice(MOTIVASYONLAR)
+
+    mesaj = (
+        f"🎓 <b>YKS 2027</b>\n"
+        f"⏳ <b>{sure}</b>\n\n"
+        f"💬 <i>“{motivasyon}”</i>"
+    )
+
+    await update.message.reply_text(
+        mesaj,
+        parse_mode="HTML"
+    )
+
+async def kpss(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    lisans = kalan_sure(SINAV_TARIHLERI["kpss_lisans"])
+    onlisans = kalan_sure(SINAV_TARIHLERI["kpss_onlisans"])
+    ortaogretim = kalan_sure(SINAV_TARIHLERI["kpss_ortaogretim"])
+    ags = kalan_sure(SINAV_TARIHLERI["ags"])
+    ekpss = kalan_sure(SINAV_TARIHLERI["ekpss"])
+
+    motivasyon = random.choice(MOTIVASYONLAR)
+
+    mesaj = (
+        f"📚 <b>KPSS Sayaçları</b>\n\n"
+        f"🎓 Lisans → <b>{lisans}</b>\n"
+        f"📖 Ön Lisans → <b>{onlisans}</b>\n"
+        f"🏫 Ortaöğretim → <b>{ortaogretim}</b>\n"
+        f"👩‍🏫 AGS → <b>{ags}</b>\n"
+        f"🏛️ EKPSS → <b>{ekpss}</b>\n\n"
+        f"💬 <i>“{motivasyon}”</i>"
+    )
+
+    await update.message.reply_text(
+        mesaj,
+        parse_mode="HTML"
+    )
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(update.effective_chat.id)
@@ -1179,6 +1276,8 @@ app.add_handler(CommandHandler("soz", soz))
 app.add_handler(CommandHandler("ship", ship))
 app.add_handler(CommandHandler("burc", burc_yorumu))
 app.add_handler(CommandHandler("grup_id", grup_id_ver))
+app.add_handler(CommandHandler("yks", yks))
+app.add_handler(CommandHandler("kpss", kpss))
 app.add_handler(CommandHandler("slap", slap))
 app.add_handler(CommandHandler("sans", sans))
 app.add_handler(CommandHandler("mood", mood))
@@ -1188,7 +1287,7 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, zuzu_listener))
 app.add_handler(CallbackQueryHandler(weather_callback, pattern=r"^hd"))
 app.add_handler(CallbackQueryHandler(buttons))
 app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, log_private_messages))
-   
+
     
 app.add_error_handler(error_handler)
 
