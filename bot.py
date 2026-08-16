@@ -1661,34 +1661,29 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         help_text = (
     "📖 <b>Zuzu Komut Rehberi</b>\n\n"
 
-    "𓂃 ࣪˖ ִֶָ🐾 <b>Zuzu'yla neler yapabilirsin?</b>\n\n"
-
     "୨୧ <b>Sınav Sayaçları</b>\n"
-        "┊ 🎓 <b>/yks</b> — YKS'ye kalan süreyi öğren.\n"
-        "┊ 📚 <b>/kpss</b> — KPSS'ye kalan süreyi öğren.\n\n"
+        "🎓 <b>/yks</b> — YKS'ye kalan süreyi öğren.\n"
+        "📚 <b>/kpss</b> — KPSS'ye kalan süreyi öğren.\n\n"
 
     "୨୧ <b>Alarmlar</b>\n"
-    "┊ ⏰ <b>/alarm</b> — Unutmak istemediğin bir şeyi Zuzu'ya bırak.\n"
-    "┊ 📋 <b>/alarmlar</b> — Oluşturduğun aktif alarmları görüntüle.\n"
-    "┊ 💡 Örnek: <code>/alarm 1 saat sonra ders çalışacağım</code>\n"
-    "┊ 💡 Örnek: <code>/alarm 16:30'da ders çalışacağım</code>\n"
-    "┊ 💡 Örnek: <code>/alarm yarın 10:00'da toplantım var</code>\n\n"
+    "⏰ <b>/alarm</b> — Unutmak istemediğin bir şeyi Zuzu'ya bırak.\n"
+    "📋 <b>/alarmlar</b> — Oluşturduğun aktif alarmları görüntüle.\n\n"
 
     "୨୧ <b>Eğlence</b>\n"
-    "┊ 🎲 <b>/d</b> — Bir doğruluk sorusu seç.\n"
-    "┊ 🎯 <b>/c</b> — Kendine bir cesaret görevi seç.\n"
-    "┊ 📝 <b>/soz</b> — Günün motivasyon sözünü keşfet.\n"
-    "┊ 🐾 <b>/slap @kullanici</b> — Arkadaşını tokatla yap.\n"
-    "┊ 🔥 <b>/roast</b> — Zuzu'dan eğlenceli bir roast iste.\n\n"
+    "🎲 <b>/d</b> — Bir doğruluk sorusu seç.\n"
+    "🎯 <b>/c</b> — Kendine bir cesaret görevi seç.\n"
+    "📝 <b>/soz</b> — Günün motivasyon sözünü keşfet.\n"
+    "🐾 <b>/slap @kullanici</b> — Arkadaşını tokatla yap.\n"
+    "🔥 <b>/roast</b> — Zuzu'dan eğlenceli bir roast iste.\n\n"
 
     "୨୧ <b>Sosyal</b>\n"
-    "┊ 💗 <b>/ship @kullanici</b> — Aranızdaki uyumu keşfet.\n"
-    "┊ 🔮 <b>/burc</b> — Burcuna özel bir yorum al.\n"
-    "┊ 🍀 <b>/sans</b> — Bugünkü şansını öğren.\n"
-    "┊ 🌙 <b>/mood</b> — Bugünkü ruh haline bakalım.\n\n"
+    "💗 <b>/ship @kullanici</b> — Aranızdaki uyumu keşfet.\n"
+    "🔮 <b>/burc</b> — Burcuna özel bir yorum al.\n"
+    "🍀 <b>/sans</b> — Bugünkü şansını öğren.\n"
+    "🌙 <b>/mood</b> — Bugünkü ruh haline bakalım.\n\n"
 
     "୨୧ <b>Hava Durumu</b>\n"
-    "┊ ☁️ <b>/hd şehir</b> — İstediğin şehrin hava durumuna bak.\n\n"
+    "☁️ <b>/hd şehir</b> — İstediğin şehrin hava durumuna bak.\n\n"
 
     "𓂃 ࣪˖ ִֶָ ✨ <i>Zuzu burada biraz eğlenmek, biraz gülmek\n"
     "ve sana eşlik etmek için var. 🐈</i>"
