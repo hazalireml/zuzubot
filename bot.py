@@ -1363,12 +1363,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text = (
             f"𓂃 ࣪˖ ִֶָ🐾་༘࿐\n"
             f"🐾 <b>selam {kullanici}! ben zuzu ♡</b>\n\n"
-            f"• <b>🎓 YKS & KPSS sayaçları/b>\n"
-            f"• <b>⏰ Kişisel alarmlar & hatırlatmalar</b>\n"
-            f"• <b>🌤️ Hava durumu</b>\n"
-            f"• <b>🎲 Oyunlar & eğlence</b>\n"
-            f"• <b>💞 Aşk & Uyum</b>\n\n"
-            f"aşağıdaki Komutlar butonundan zuzu'nun dünyasını keşfedebilirsin. ♡"
+            f"• 🎓 YKS & KPSS sayaçları\n"
+            f"• ⏰ Kişisel alarmlar & hatırlatmalar\n"
+            f"• 🌤️ Hava durumu\n"
+            f"• 🎲 Oyunlar & eğlence\n"
+            f"• 🤍 Aşk & Uyum\n\n"
+            f"aşağıdaki Komutlar butonundan\n"
+            f"zuzu'nun dünyasını keşfedebilirsin. ♡"
         )
 
         keyboard = [
