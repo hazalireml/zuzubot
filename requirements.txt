@@ -3,3 +3,4 @@ python-dotenv
 psycopg
 flask
 requests
+python-telegram-bot[job-queue]
