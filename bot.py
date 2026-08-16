@@ -4,8 +4,11 @@ import asyncio
 import logging
 import json
 import time
+import sqlite3
+import re 
 
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
@@ -23,12 +26,244 @@ from telegram.ext import (
     filters,
     ContextTypes
 )
+ISTANBUL = ZoneInfo("Europe/Istanbul")
+
+DB_NAME = "zuzu_alarmlar.db"
 
 load_dotenv()
 
 flask_app = Flask('')
 
 @flask_app.route('/')
+
+def init_alarm_db():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS alarms (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            chat_id INTEGER NOT NULL,
+            username TEXT,
+            message TEXT NOT NULL,
+            alarm_time TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+def add_alarm(user_id, chat_id, username, message, alarm_time):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO alarms
+        (user_id, chat_id, username, message, alarm_time, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        user_id,
+        chat_id,
+        username,
+        message,
+        alarm_time.isoformat(),
+        datetime.now(ISTANBUL).isoformat()
+    ))
+
+    alarm_id = cursor.lastrowid
+
+    conn.commit()
+    conn.close()
+
+    return alarm_id
+
+def get_user_alarms(user_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, message, alarm_time
+        FROM alarms
+        WHERE user_id = ?
+        ORDER BY alarm_time ASC
+    """, (user_id,))
+
+    alarms = cursor.fetchall()
+
+    conn.close()
+
+    return alarms
+
+def get_alarm(alarm_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, user_id, chat_id, username, message, alarm_time
+        FROM alarms
+        WHERE id = ?
+    """, (alarm_id,))
+
+    alarm = cursor.fetchone()
+
+    conn.close()
+
+    return alarm
+
+def delete_alarm(alarm_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM alarms WHERE id = ?",
+        (alarm_id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+def parse_alarm_time(text):
+    """
+    Örnekler:
+
+    1 saat sonra
+    30 dakika sonra
+    2 saat sonra
+    16:30
+    16.30
+    yarın 16:30
+    yarın saat 10:00
+    25 ağustos 18:30
+    """
+
+    now = datetime.now(ISTANBUL)
+    text = text.lower().strip()
+
+    match = re.search(
+        r"(\d+)\s*(saat|sa)\s*sonra",
+        text
+    )
+
+    if match:
+        hours = int(match.group(1))
+
+        return (
+            now + timedelta(hours=hours),
+            match.end()
+        )
+    match = re.search(
+        r"(\d+)\s*(dakika|dk|dk\.)\s*sonra",
+        text
+    )
+
+    if match:
+        minutes = int(match.group(1))
+
+        return (
+            now + timedelta(minutes=minutes),
+            match.end()
+        )
+    time_match = re.search(
+        r"\b([01]?\d|2[0-3])[:.]([0-5]\d)\b",
+        text
+    )
+
+    if time_match:
+
+        hour = int(time_match.group(1))
+        minute = int(time_match.group(2))
+
+        alarm_date = now.date()
+
+    # "yarın" varsa
+        if "yarın" in text:
+            alarm_date = alarm_date + timedelta(days=1)
+
+        alarm_time = datetime(
+            alarm_date.year,
+            alarm_date.month,
+            alarm_date.day,
+            hour,
+            minute,
+            tzinfo=ISTANBUL
+        )
+    # Bugünkü saat geçmişse otomatik yarına al
+        if alarm_time <= now and "yarın" not in text:
+            alarm_time += timedelta(days=1)
+
+        return (
+            alarm_time,
+            time_match.end()
+        )
+    match = re.search(
+        r"\b([01]?\d|2[0-3])\s*(?:'da|'de|da|de)\b",
+        text
+    )
+
+    if match:
+
+        hour = int(match.group(1))
+
+        alarm_date = now.date()
+
+        if "yarın" in text:
+            alarm_date += timedelta(days=1)
+
+        alarm_time = datetime(
+            alarm_date.year,
+            alarm_date.month,
+            alarm_date.day,
+            hour,
+            0,
+            tzinfo=ISTANBUL
+        ) 
+        if alarm_time <= now and "yarın" not in text:
+            alarm_time += timedelta(days=1)
+
+        return (
+            alarm_time,
+            match.end()
+        )
+
+    return None, None
+
+
+def restore_alarms(application):
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, alarm_time
+        FROM alarms
+    """)
+
+    alarms = cursor.fetchall()
+
+    conn.close()
+
+    now = datetime.now(ISTANBUL)
+
+    for alarm_id, alarm_time in alarms:
+
+        alarm_datetime = datetime.fromisoformat(alarm_time)
+
+        delay = (
+            alarm_datetime - now
+        ).total_seconds()
+        if delay <= 0:
+            delay = 1
+
+        application.job_queue.run_once(
+            send_alarm,
+            when=delay,
+            data={
+                "alarm_id": alarm_id
+            },
+            name=f"alarm_{alarm_id}"
+        )
+        
 def home():
     return "Zuzu Bot Aktif!"
 
@@ -777,8 +1012,6 @@ SINAV_TARIHLERI = {
         "kpss_lisans": datetime(2026, 9, 6, 10, 15),
         "kpss_onlisans": datetime(2026, 10, 4, 10, 15),
         "kpss_ortaogretim": datetime(2026, 10, 25, 10, 15),
-        "ekpss": datetime(2026, 4, 19, 10, 15),
-        "ags": datetime(2026, 7, 26, 10, 15),
 }
 
 MOTIVASYONLAR = [
@@ -814,6 +1047,275 @@ MOTIVASYONLAR = [
     "Bugünkü minik çalışman, yarının büyük mutluluğu. 🌸🐾"
 ]
 
+
+async def alarm_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    if not context.args:
+
+        await update.message.reply_text(
+            "⏰ <b>Alarm oluşturmak için:</b>\n\n"
+            "<code>/alarm 1 saat sonra python çalışacağım</code>\n"
+            "<code>/alarm 30 dakika sonra ders çalışacağım</code>\n"
+            "<code>/alarm 16:30'da ders çalışacağım</code>\n"
+            "<code>/alarm yarın 10:00 toplantım var</code>",
+            parse_mode="HTML"
+        )
+
+        return
+
+    full_text = " ".join(context.args)
+
+    alarm_time, time_end = parse_alarm_time(full_text)
+
+    if alarm_time is None:
+        await update.message.reply_text(
+            "🐾 Zuzu zamanı anlayamadı.\n\n"
+            "Şöyle yazabilirsin:\n"
+            "<code>/alarm 1 saat sonra ders çalışacağım</code>\n"
+            "<code>/alarm 16:30'da ders çalışacağım</code>\n"
+            "<code>/alarm yarın 10:00 toplantım var</code>",
+            parse_mode="HTML"
+        )
+
+        return
+
+    # Zaman ifadesini mesajdan çıkar
+    message = full_text[time_end:].strip()
+
+    # "da/de/sonra" gibi kalıntıları temizle
+    message = re.sub(
+        r"^[\s,.'’]*",
+        "",
+        message
+    )
+
+    if not message:
+
+        await update.message.reply_text(
+            "📝 Zuzu neyi hatırlatacağını da bilmek istiyor.\n\n"
+            "Örneğin:\n"
+            "<code>/alarm 1 saat sonra Python çalışacağım</code>",
+            parse_mode="HTML"
+        )
+
+        return
+
+    user = update.effective_user
+    chat = update.effective_chat
+
+    username = user.username
+
+    alarm_id = add_alarm(
+        user_id=user.id,
+        chat_id=chat.id,
+        username=username,
+        message=message,
+        alarm_time=alarm_time
+    )
+
+    # JobQueue'ya ekle
+    delay = (
+        alarm_time -
+        datetime.now(ISTANBUL)
+    ).total_seconds()
+
+    if delay < 1:
+        delay = 1
+
+    context.job_queue.run_once(
+        send_alarm,
+        when=delay,
+        data={
+            "alarm_id": alarm_id
+        },
+        name=f"alarm_{alarm_id}"
+    )
+
+    formatted_time = alarm_time.strftime("%d.%m.%Y • %H:%M")
+    await update.message.reply_text(
+        "⏰ <b>Alarm kuruldu!</b>\n\n"
+        f"📌 {message}\n"
+        f"🕐 {formatted_time}\n\n"
+        "Zamanı geldiğinde seni etiketleyip "
+        "hatırlatacağım. 🐾",
+        parse_mode="HTML"
+    )
+
+async def send_alarm(context: ContextTypes.DEFAULT_TYPE):
+
+    alarm_id = context.job.data["alarm_id"]
+
+    alarm = get_alarm(alarm_id)
+
+    if not alarm:
+        return
+
+    (
+        alarm_id,
+        user_id,
+        chat_id,
+        username,
+        message,
+        alarm_time
+    ) = alarm
+
+    # Kullanıcıyı mention'lama
+    mention = f'<a href="tg://user?id={user_id}">'
+
+    display_name = username if username else "burada"
+
+    text = (
+        f"🔔 <b>{mention}{display_name}</a></b>\n\n"
+        "⏰ <b>Alarm zamanı!</b>\n\n"
+        f"📌 {message}\n\n"
+        "🐾 Zuzu sana hatırlatacağını söylemişti."
+    )
+
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                "✅ Tamamlandı",
+                callback_data=f"alarm_done:{alarm_id}"
+            ),
+            InlineKeyboardButton(
+                "🗑 Sil",
+                callback_data=f"alarm_delete:{alarm_id}"
+            )
+        ]
+    ])
+    try:
+
+        await context.bot.send_message(
+            chat_id=chat_id,
+            text=text,
+            parse_mode="HTML",
+            reply_markup=keyboard
+        )
+
+    except Exception as e:
+
+        print(f"Alarm gönderilemedi: {e}")
+
+    # Tek seferlik alarm olduğu için veritabanından sil
+    delete_alarm(alarm_id)
+
+async def alarms_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    user_id = update.effective_user.id
+
+    alarms = get_user_alarms(user_id)
+
+    if not alarms:
+
+        await update.message.reply_text(
+            "⏰ <b>Aktif bir alarmın yok.</b>\n\n"
+            "Yeni bir alarm oluşturmak için:\n"
+            "<code>/alarm 1 saat sonra ders çalışacağım</code>",
+            parse_mode="HTML"
+        )
+
+        return
+
+    text = "⏰ <b>Alarmların</b>\n\n"
+
+    buttons = []
+    for alarm_id, message, alarm_time in alarms:
+
+        alarm_datetime = datetime.fromisoformat(alarm_time)
+
+        formatted = alarm_datetime.strftime(
+            "%d.%m • %H:%M"
+        )
+
+        text += (
+            f"🔹 <b>{message}</b>\n"
+            f"   🕐 {formatted}\n\n"
+        )
+
+        buttons.append([
+            InlineKeyboardButton(
+                f"🗑 {message[:20]}",
+                callback_data=f"alarm_delete:{alarm_id}"
+            )
+        ])
+    await update.message.reply_text(
+        text,
+        parse_mode="HTML",
+        reply_markup=InlineKeyboardMarkup(buttons)
+    )
+
+async def alarm_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    query = update.callback_query
+
+    await query.answer()
+
+    data = query.data
+
+    if ":" not in data:
+        return
+
+    action, alarm_id = data.split(":")
+
+    alarm_id = int(alarm_id)
+
+    alarm = get_alarm(alarm_id)
+
+    if not alarm:
+        await query.edit_message_text(
+            "🐾 Bu alarm artık mevcut değil."
+        )
+        return
+
+    user_id = update.effective_user.id
+
+    # Başkasının alarmını silemesin
+    if alarm[1] != user_id:
+
+        await query.answer(
+            "Bu alarm sana ait değil. 🐾",
+            show_alert=True
+        )
+
+        return
+
+    if action == "alarm_delete":
+
+        # Job'u iptal et
+        jobs = context.job_queue.get_jobs_by_name(
+            f"alarm_{alarm_id}"
+        )
+
+        for job in jobs:
+            job.schedule_removal()
+
+        delete_alarm(alarm_id)
+        await query.edit_message_text(
+            "🗑 <b>Alarm silindi.</b>\n\n"
+            "🐾 Zuzu artık bunu sana hatırlatmayacak.",
+            parse_mode="HTML"
+        )
+
+    elif action == "alarm_done":
+
+        jobs = context.job_queue.get_jobs_by_name(
+            f"alarm_{alarm_id}"
+        )
+
+        for job in jobs:
+            job.schedule_removal()
+
+        delete_alarm(alarm_id)
+        await query.edit_message_text(
+            "✅ <b>Alarm tamamlandı!</b>\n\n"
+            "🐾 Aferin, Zuzu görevini unutmadı. ♡",
+            parse_mode="HTML"
+        )
+
+
+
+
+
 async def yks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     sure = kalan_sure(SINAV_TARIHLERI["yks"])
@@ -835,8 +1337,6 @@ async def kpss(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lisans = kalan_sure(SINAV_TARIHLERI["kpss_lisans"])
     onlisans = kalan_sure(SINAV_TARIHLERI["kpss_onlisans"])
     ortaogretim = kalan_sure(SINAV_TARIHLERI["kpss_ortaogretim"])
-    ags = kalan_sure(SINAV_TARIHLERI["ags"])
-    ekpss = kalan_sure(SINAV_TARIHLERI["ekpss"])
 
     motivasyon = random.choice(MOTIVASYONLAR)
 
@@ -845,8 +1345,6 @@ async def kpss(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🎓 Lisans → <b>{lisans}</b>\n"
         f"📖 Ön Lisans → <b>{onlisans}</b>\n"
         f"🏫 Ortaöğretim → <b>{ortaogretim}</b>\n"
-        f"👩‍🏫 AGS → <b>{ags}</b>\n"
-        f"🏛️ EKPSS → <b>{ekpss}</b>\n\n"
         f"💬 <i>“{motivasyon}”</i>"
     )
 
@@ -863,11 +1361,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if chat_type == "private":
         text = (
-            f"🐾 <b>Selam {kullanici}! Ben Zuzu!</b>\n\n"
-            f"Gruplar içinde sohbeti daha canlı ve eğlenceli hale getirmek için geliştirilmiş bir botum.😻\n\n"
-            f"• <b>Oyunlar oynatırım</b>\n"
-            f"• <b>Küçük etkileşimler sunarım</b>\n\n"
-            f"👇 Aşağıdaki menüden tüm komutlarıma ulaşabilirsin ✨"
+            f"𓂃 ࣪˖ ִֶָ🐾་༘࿐\n"
+            f"🐾 <b>selam {kullanici}! ben zuzu ♡</b>\n\n"
+            f"• <b>🎓 YKS & KPSS sayaçları/b>\n"
+            f"• <b>⏰ Kişisel alarmlar & hatırlatmalar</b>\n"
+            f"• <b>🌤️ Hava durumu</b>\n"
+            f"• <b>🎲 Oyunlar & eğlence</b>\n"
+            f"• <b>💞 Aşk & Uyum</b>\n\n"
+            f"aşağıdaki Komutlar butonundan zuzu'nun dünyasını keşfedebilirsin. ♡"
         )
 
         keyboard = [
@@ -877,6 +1378,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
     else:
         text = (
+            f"𓂃 ࣪˖ ִֶָ🐾་༘࿐\n"
             f"✨ <b>Zuzu grupta aktif!</b>\n\n"
             f"👤 Hoş geldin {kullanici}!\n"
             f"🎯 Eğlenmek ve oyun oynamak için komutlarımı kullanabilirsin.\n\n"
@@ -1158,21 +1660,37 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
         help_text = (
     "📖 <b>Zuzu Komut Rehberi</b>\n\n"
 
-    "🎮 <b>Eğlence</b>\n"
-    "• /d → Doğruluk sorusu\n"
-    "• /c → Cesaret görevi\n"
-    "• /soz → Günlük motivasyon\n"
-    "• /slap @kullanici → Minik şaka\n"
-    "• /roast → Zuzu seni roastlasın\n"
-    "• /hd → Hava Durumu (şehir)\n\n"
+    "𓂃 ࣪˖ ִֶָ🐾 <b>Zuzu'yla neler yapabilirsin?</b>\n\n"
 
-    "💞 <b>Sosyal</b>\n"
-    "• /ship @kullanici → Uyumluluk testi 💕\n"
-    "• /burc → Burç yorumu \n"
-    "• /sans → Günlük şansın \n"
-    "• /mood → Ruh hali analizi \n\n"
+    "୨୧ <b>Sınav Sayaçları</b>\n"
+        "┊ 🎓 <b>/yks</b> — YKS'ye kalan süreyi öğren.\n"
+        "┊ 📚 <b>/kpss</b> — KPSS'ye kalan süreyi öğren.\n\n"
 
-    "✨ Zuzu burada seni eğlendirmek için var 🐾"
+    "୨୧ <b>Alarmlar</b>\n"
+    "┊ ⏰ <b>/alarm</b> — Unutmak istemediğin bir şeyi Zuzu'ya bırak.\n"
+    "┊ 📋 <b>/alarmlar</b> — Oluşturduğun aktif alarmları görüntüle.\n"
+    "┊ 💡 Örnek: <code>/alarm 1 saat sonra ders çalışacağım</code>\n"
+    "┊ 💡 Örnek: <code>/alarm 16:30'da ders çalışacağım</code>\n"
+    "┊ 💡 Örnek: <code>/alarm yarın 10:00'da toplantım var</code>\n\n"
+
+    "୨୧ <b>Eğlence</b>\n"
+    "┊ 🎲 <b>/d</b> — Bir doğruluk sorusu seç.\n"
+    "┊ 🎯 <b>/c</b> — Kendine bir cesaret görevi seç.\n"
+    "┊ 📝 <b>/soz</b> — Günün motivasyon sözünü keşfet.\n"
+    "┊ 🐾 <b>/slap @kullanici</b> — Arkadaşını tokatla yap.\n"
+    "┊ 🔥 <b>/roast</b> — Zuzu'dan eğlenceli bir roast iste.\n\n"
+
+    "୨୧ <b>Sosyal</b>\n"
+    "┊ 💗 <b>/ship @kullanici</b> — Aranızdaki uyumu keşfet.\n"
+    "┊ 🔮 <b>/burc</b> — Burcuna özel bir yorum al.\n"
+    "┊ 🍀 <b>/sans</b> — Bugünkü şansını öğren.\n"
+    "┊ 🌙 <b>/mood</b> — Bugünkü ruh haline bakalım.\n\n"
+
+    "୨୧ <b>Hava Durumu</b>\n"
+    "┊ ☁️ <b>/hd şehir</b> — İstediğin şehrin hava durumuna bak.\n\n"
+
+    "𓂃 ࣪˖ ִֶָ ✨ <i>Zuzu burada biraz eğlenmek, biraz gülmek\n"
+    "ve sana eşlik etmek için var. 🐈</i>"
 )
         await query.message.edit_text(text=help_text, parse_mode="HTML", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("⬅️ Ana Menüye Dön", callback_data="back_to_start")]]))
         return
@@ -1283,6 +1801,9 @@ app.add_handler(CommandHandler("sans", sans))
 app.add_handler(CommandHandler("mood", mood))
 app.add_handler(CommandHandler("roast", roast))
 app.add_handler(CommandHandler("hd", hd))
+app.add_handler(CommandHandler("alarm", alarm_command))
+app.add_handler(CommandHandler("alarmlar", alarms_command))
+app.add_handler(CallbackQueryHandler(alarm_button, pattern=r"^alarm_(done|delete):"))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, zuzu_listener))
 app.add_handler(CallbackQueryHandler(weather_callback, pattern=r"^hd"))
 app.add_handler(CallbackQueryHandler(buttons))
@@ -1292,4 +1813,6 @@ app.add_handler(MessageHandler(filters.TEXT & filters.ChatType.PRIVATE, log_priv
 app.add_error_handler(error_handler)
 
 logger.info("Bot çalışıyor...")
+init_alarm_db()
+restore_alarms(app)
 app.run_polling(drop_pending_updates=True)
